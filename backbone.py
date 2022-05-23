@@ -396,8 +396,8 @@ def Conv5():
 def Conv6():
     return ConvNet(6)
 
-def Conv5():
-    return ConvNetNopool()
+# def Conv5():
+#     return ConvNetNopool()
 
 def Conv4NP(flatten = False):
     return ConvNetNopool(4, flatten=False)
