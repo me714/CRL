@@ -39,7 +39,7 @@ class WindowAttention(nn.Module):
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop)
         self.c_num = c_num
-        self.proj = nn.Linear(self.c_num*self.c_num*self.dim, self.c_num*self.c_num*self.dim)
+        self.proj = nn.Linear(self.c_num*self.c_num*self.dim, 2*self.c_num*self.c_num*self.dim)
         self.proj1 = nn.Linear(2*self.c_num*self.c_num*self.dim, 5)
         self.support_num = support_num
         self.act = nn.GELU()
@@ -57,13 +57,15 @@ class WindowAttention(nn.Module):
             x: input features with shape of (num_windows*B, N, C)
             mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None
         """
+        x = x.view(5, self.support_num + self.query_num, self.c_num * self.c_num, self.dim)[:, self.support_num:, :,
+            :].contiguous()
         x1 = x
-        x1 = x1.view((self.support_num+self.query_num)*5, self.dim*self.c_num*self.c_num)
-        x = x.view(5, self.support_num+self.query_num, self.c_num*self.c_num, self.dim)
-        x = x.view(5*(self.query_num+self.support_num), self.c_num, self.c_num, self.dim).permute(0, 3, 1, 2)
+        x1 = x1.view(self.query_num*5, self.dim*self.c_num*self.c_num)
+        x = x.view(5, self.query_num, self.c_num*self.c_num, self.dim)
+        x = x.view(5*self.query_num, self.c_num, self.c_num, self.dim).permute(0, 3, 1, 2)
         k_out_h, k_out_w = x.split(self.dim // 2, dim=1)
         x = torch.cat((k_out_h + self.rel_h, k_out_w + self.rel_w), dim=1)
-        x = x.permute(0, 2, 3, 1).view(5*(self.query_num+self.support_num), self.c_num*self.c_num, self.dim)
+        x = x.permute(0, 2, 3, 1).view(5*self.query_num, self.c_num*self.c_num, self.dim)
         B_, N, C = x.shape
         qkv = self.qkv(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
@@ -74,9 +76,12 @@ class WindowAttention(nn.Module):
         attn = self.attn_drop(attn)
 
         x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
-        x = x.view(5*(self.query_num+self.support_num), self.c_num*self.c_num*self.dim)
+
+        x = x.view(5*self.query_num, self.c_num*self.c_num*self.dim)
+        x = x + x1
         x = self.proj(x)
         x = self.act(x)
+        x = self.proj1(x)
         x = self.proj_drop(x)
-        x = x.view(5, (self.query_num+self.support_num), self.c_num*self.c_num*self.dim)
-        return x + x1
+        # x = x.view(5, (self.query_num+self.support_num), self.c_num*self.c_num*self.dim)
+        return x

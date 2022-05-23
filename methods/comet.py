@@ -99,7 +99,7 @@ class COMET(MetaTemplate):
                 feat_list.append(feat)
             feat_all = torch.stack(feat_list, dim=0)
             attn = self.att(feat_all)
-            z_all = attn.view(self.n_way, self.n_support + self.n_query, -1)
+            z_all = z_one.view(self.n_way, self.n_support + self.n_query, -1)
 
         z_support = z_all[:, :self.n_support]
         z_query = z_all[:, self.n_support:]
