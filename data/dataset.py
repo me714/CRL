@@ -136,7 +136,7 @@ class SubDataset:
 class SubPartsDataset(Dataset):
 
     def __init__(self, sub_meta, cl, image_size, transform=transforms.ToTensor(), target_transform=identity, is_train=True):
-        self.num_joints = 15
+        self.num_joints = 4
 
         self.is_train = is_train
         self.sub_meta = sub_meta
