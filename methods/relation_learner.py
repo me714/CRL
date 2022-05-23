@@ -28,7 +28,7 @@ class WindowAttention(nn.Module):
         proj_drop (float, optional): Dropout ratio of output. Default: 0.0
     """
 
-    def __init__(self, dim, num_heads, support_num=1, query_num=16, c_num=3, qkv_bias=True, qk_scale=None, attn_drop=0.1, proj_drop=0.1):
+    def __init__(self, dim, num_heads, support_num=1, query_num=16, c_num=4, qkv_bias=True, qk_scale=None, attn_drop=0.1, proj_drop=0.1):
 
         super().__init__()
         self.lookup_table_bias = nn.Parameter(torch.zeros(5, 5), requires_grad=True)

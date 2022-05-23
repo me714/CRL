@@ -390,6 +390,8 @@ class ResNet(nn.Module):
 
 def Conv4():
     return ConvNet(4)
+def Conv5():
+    return ConvNet(5)
 
 def Conv6():
     return ConvNet(6)
