@@ -11,7 +11,7 @@ from methods.relation_learner import WindowAttention
 from methods.heatmap import generate_heatmap
 from methods.focal_loss import FocalLossV1
 from methods.resNet import CNN, BasicBlock
-from backbone import Conv6
+from backbone import Conv5
 from torchvision import models
 
 
@@ -23,7 +23,7 @@ class COMET(MetaTemplate):
         self.Linear2 = nn.Linear(49, 2)
         self.smoth = nn.SmoothL1Loss()
         self.globalpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.featurep = Conv6()
+        self.featurep = Conv5()
 
         self.wt = nn.Parameter(data=torch.ones(16), requires_grad=True).cuda()
         self.att = WindowAttention(64, 4)
