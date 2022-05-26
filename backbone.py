@@ -277,8 +277,8 @@ class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in
         self.conv = nn.Conv2d(85, 85, kernel_size=1, bias=True)
         trunk = []
         for i in range(depth):
-            indim = 3 if i == 0 else 12
-            outdim = 12
+            indim = 3 if i == 0 else 24
+            outdim = 24
             B = ConvBlock(indim, outdim, pool = ( i in [0,1] ), padding = 0 if i in[0,1] else 1  ) #only first two layer has pooling and no padding
             trunk.append(B)
 
@@ -286,11 +286,11 @@ class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in
             lastpool = nn.AdaptiveAvgPool2d((1, 1))
             trunk.append(lastpool)
             trunk.append(Flatten())
-            self.final_feat_dim = 12
+            self.final_feat_dim = 24
         else:
             lastpool = nn.AdaptiveAvgPool2d((7, 7))
             trunk.append(lastpool)
-            self.final_feat_dim = [12, 7, 7]
+            self.final_feat_dim = [24, 7, 7]
 
         self.trunk = nn.Sequential(*trunk)
 

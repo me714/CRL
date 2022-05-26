@@ -28,7 +28,7 @@ class WindowAttention(nn.Module):
         proj_drop (float, optional): Dropout ratio of output. Default: 0.0
     """
 
-    def __init__(self, dim, num_heads, support_num=1, query_num=16, c_num=2, qkv_bias=True, qk_scale=None, attn_drop=0.1, proj_drop=0.1):
+    def __init__(self, dim, num_heads, support_num=1, query_num=16, c_num=5, trd=1, qkv_bias=True, qk_scale=None, attn_drop=0.1, proj_drop=0.1):
 
         super().__init__()
         self.lookup_table_bias = nn.Parameter(torch.zeros(5, 5), requires_grad=True)
@@ -43,6 +43,7 @@ class WindowAttention(nn.Module):
         self.proj1 = nn.Linear(2*self.c_num*self.c_num*self.dim, 5)
         self.support_num = support_num
         self.act = nn.GELU()
+        self.trd = trd
         self.query_num = query_num
         self.proj_drop = nn.Dropout(proj_drop)
         self.softmax = nn.Softmax(dim=-1)
@@ -57,28 +58,26 @@ class WindowAttention(nn.Module):
             x: input features with shape of (num_windows*B, N, C)
             mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None
         """
+        # 5*（5+16）, 25, 64 > 5, 16, 25, 64
         x = x.view(5, self.support_num + self.query_num, self.c_num * self.c_num, self.dim)[:, self.support_num:, :,
             :].contiguous()
-        x1 = x
-        x1 = x1.view(self.query_num*5, self.dim*self.c_num*self.c_num)
-        x = x.view(5, self.query_num, self.c_num*self.c_num, self.dim)
-        x = x.view(5*self.query_num, self.c_num, self.c_num, self.dim).permute(0, 3, 1, 2)
-        k_out_h, k_out_w = x.split(self.dim // 2, dim=1)
-        x = torch.cat((k_out_h + self.rel_h, k_out_w + self.rel_w), dim=1)
-        x = x.permute(0, 2, 3, 1).view(5*self.query_num, self.c_num*self.c_num, self.dim)
-        B_, N, C = x.shape
-        qkv = self.qkv(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
-        q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
-        q = q * self.scale
-        attn = (q @ k.transpose(-2, -1))
-        attn = self.softmax(attn)
-
-        attn = self.attn_drop(attn)
-
-        x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
+        for i in range(self.trd):
+            x1 = x
+            x = x.view(5*self.query_num, self.c_num, self.c_num, self.dim).permute(0, 3, 1, 2)
+            k_out_h, k_out_w = x.split(self.dim // 2, dim=1)
+            x = torch.cat((k_out_h + self.rel_h, k_out_w + self.rel_w), dim=1)
+            x = x.permute(0, 2, 3, 1).view(5*self.query_num, self.c_num*self.c_num, self.dim)
+            B_, N, C = x.shape
+            qkv = self.qkv(x).reshape(B_, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+            q, k, v = qkv[0], qkv[1], qkv[2]  # make torchscript happy (cannot use tensor as tuple)
+            q = q * self.scale
+            attn = (q @ k.transpose(-2, -1))
+            attn = self.softmax(attn)
+            attn = self.attn_drop(attn)
+            x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
+            x = x + x1
 
         x = x.view(5*self.query_num, self.c_num*self.c_num*self.dim)
-        x = x + x1
         x = self.proj(x)
         x = self.act(x)
         x = self.proj1(x)
