@@ -73,11 +73,11 @@ class COMET(MetaTemplate):
             joints[:, :, :2] = joints[:, :, :2] / img_len * feat_len
             joints = joints.round().int()
             joints_label = Variable(joints[:, :, 0:2].contiguous().cuda())
-            joints_label = joints_label.repeat(1, 6, 1)
-            joints = np.repeat(joints, 6, axis=1)
+            joints_label = joints_label.repeat(1, 3, 1)
+            joints = np.repeat(joints, 3, axis=1)
             batch_num = joints.size(0)
-            joints_num = joints.size(1)
-            # joints_num = 8
+            # joints_num = joints.size(1)
+            joints_num = 3
             z_pos = abs(z_pos).round().int()
             z_avg = self.globalpool(z_feature).view(z_feature.size(0), z_feature.size(1))
             feat_list = []
