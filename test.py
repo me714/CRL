@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     acc_all = []
 
-    iter_num = 600
+    iter_num = 1
 
     few_shot_params = dict(n_way = params.test_n_way , n_support = params.n_shot) 
 
@@ -124,7 +124,7 @@ if __name__ == '__main__':
             else:
                 image_size = 84 
         else:
-            image_size = 224
+            image_size = 84
 
         datamgr         = SetDataManager(image_size, n_eposide = iter_num, n_query = 15 , **few_shot_params)
         
@@ -153,7 +153,7 @@ if __name__ == '__main__':
             else:
                 image_size = 84 
         else:
-            image_size = 224
+            image_size = 84
         loadfile = configs.data_dir[params.dataset] + split + '.json'
         datamgr         = SetDataManager(image_size, n_eposide = iter_num, n_query = 15 , **few_shot_params)
         novel_loader     = datamgr.get_data_loader( loadfile, aug = False, is_train=False)

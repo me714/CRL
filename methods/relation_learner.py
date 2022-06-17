@@ -11,7 +11,10 @@
 """
 import torch
 import torch.nn as nn
+from methods.data2heatmap import data2heatmap
 # from visualizer import get_local
+import seaborn as sns
+from matplotlib import pyplot as plt
 
 
 class WindowAttention(nn.Module):
@@ -28,7 +31,7 @@ class WindowAttention(nn.Module):
         proj_drop (float, optional): Dropout ratio of output. Default: 0.0
     """
 
-    def __init__(self, dim, num_heads, support_num=1, query_num=16, c_num=5, trd=2, qkv_bias=True, qk_scale=None, attn_drop=0.1, proj_drop=0.1):
+    def __init__(self, dim, num_heads, support_num=5, query_num=15, c_num=5, trd=2, qkv_bias=True, qk_scale=None, attn_drop=0.1, proj_drop=0.1):
 
         super().__init__()
         self.lookup_table_bias = nn.Parameter(torch.zeros(5, 5), requires_grad=True)
@@ -52,7 +55,7 @@ class WindowAttention(nn.Module):
         self.rel_w = nn.Parameter(torch.randn(self.dim // 2, 1, self.c_num), requires_grad=True)
 
     # @get_local('attn')
-    def forward(self, x, mask=None):
+    def forward(self, x, mask):
         """ Forward function.
 
         Args:
@@ -75,6 +78,13 @@ class WindowAttention(nn.Module):
             attn = (q @ k.transpose(-2, -1))
             attn = self.softmax(attn)
             attn = self.attn_drop(attn)
+
+            # print(attn)
+
+            heatmap = attn.detach().cpu()
+            mask = mask.detach().cpu()
+            data2heatmap(image=mask, attn_map=heatmap)
+
             x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
             x = x.view(5 * self.query_num, self.c_num * self.c_num * self.dim)
             x = self.proj2(x)

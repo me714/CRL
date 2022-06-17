@@ -62,6 +62,7 @@ class COMET(MetaTemplate):
             z_all = x
         else:
             x = x.contiguous().view(self.n_way * (self.n_support + self.n_query), *x.size()[2:])
+            image =x
             z_all = self.feature.forward(x)
             z_feature = self.featurep(x)
             z_one = z_feature.view(self.n_way, self.n_support + self.n_query, -1)
@@ -98,7 +99,7 @@ class COMET(MetaTemplate):
                 feat = torch.stack(feat, dim=0)
                 feat_list.append(feat)
             feat_all = torch.stack(feat_list, dim=0)
-            attn = self.att(feat_all)
+            attn = self.att(feat_all, image)
             z_all = z_one.view(self.n_way, self.n_support + self.n_query, -1)
 
         z_support = z_all[:, :self.n_support]
