@@ -20,9 +20,9 @@ from methods.relationnet import RelationNet
 from methods.maml import MAML
 from io_utils import model_dict, parse_args, get_resume_file
 from torch.utils.tensorboard import SummaryWriter
-import wandb
+# import wandb
 
-wandb.login(key='6c2154c99d763aff2bfa8017ac22e76cd13e213b')
+# wandb.login(key='6c2154c99d763aff2bfa8017ac22e76cd13e213b')
 
 def train(base_loader, val_loader, model, optimization, start_epoch, stop_epoch, params, tf_writer):    
     if optimization == 'Adam':
@@ -175,7 +175,7 @@ if __name__=='__main__':
         os.makedirs(params.checkpoint_dir)
 
     store_name = '_'.join([params.dataset, params.model, params.method, params.exp_str])
-    wandb.init(project="fewshot_images_1", tensorboard=True, name=store_name)
+    # wandb.init(project="fewshot_images_1", tensorboard=True, name=store_name)
 
     start_epoch = params.start_epoch
     stop_epoch = params.stop_epoch

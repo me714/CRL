@@ -21,23 +21,49 @@ def concept_concentrate(data):
     avg_tol_1 = torch.nn.AvgPool1d(6, 6)
     avg_tol_2 = torch.nn.AvgPool1d(6, 6)
     # print(data.size())
-    concept = data.view(5, 15, 4, 25, 25)
+    # concept = data.view(5, 15, 4, 25, 25)
+
+    concept = data.view(5, 16, 4, 25, 25)
+    concept = concept.mean(dim=1)
     concept_map = torch.zeros([5, 4, 5, 5])
-    concept_map[:, :, 4, 4] = concept[:, 1, :, 24, 24]
-    concept_total_1 = concept[:, 1, :, 23:24, :24].view(5, 4, 24)
+    concept_importance = torch.zeros([5, 4, 10])
+    concept_map[:, :, 4, 4] = concept[:, :, 24, 24]
+    concept_total_1 = concept[:, :, 23:24, :24].view(5, 4, 24)
     concept_total_1 = avg_tol_1(concept_total_1)
 
-    concept_total_2 = concept[:, 1, :, :24, 23:24].view(5, 4, 24)
+    concept_total_2 = concept[:, :, :24, 23:24].view(5, 4, 24)
     concept_total_2 = avg_tol_2(concept_total_2)
 
 
-    concept_singal = concept[:, 1, :, :24, :24]
+    concept_singal = concept[:, :, :24, :24]
     concept_singal = avg_pool(concept_singal)
     concept_map[:, :, :4, :4] = concept_singal
     concept_map[:, :, 4, :4] = concept_total_1
     concept_map[:, :, :4, 4] = concept_total_2
+    concept_importance[:, :, 0] = concept_map[:, :, 1, 0] + concept_map[:, :, 0, 1]
+    concept_importance[:, :, 1] = concept_map[:, :, 2, 0] + concept_map[:, :, 0, 2]
+    concept_importance[:, :, 2] = concept_map[:, :, 3, 0] + concept_map[:, :, 0, 3]
+    concept_importance[:, :, 3] = concept_map[:, :, 4, 0] + concept_map[:, :, 0, 4]
+    concept_importance[:, :, 4] = concept_map[:, :, 2, 1] + concept_map[:, :, 1, 2]
+    concept_importance[:, :, 5] = concept_map[:, :, 3, 1] + concept_map[:, :, 1, 3]
+    concept_importance[:, :, 6] = concept_map[:, :, 4, 1] + concept_map[:, :, 1, 4]
+    concept_importance[:, :, 7] = concept_map[:, :, 3, 2] + concept_map[:, :, 2, 3]
+    concept_importance[:, :, 8] = concept_map[:, :, 4, 2] + concept_map[:, :, 2, 4]
+    concept_importance[:, :, 9] = concept_map[:, :, 4, 3] + concept_map[:, :, 3, 4]
+    concept_importance = concept_importance.mean(dim=1)
+    concept_importance = concept_importance.reshape(5, 10)
+    concept_importance = concept_importance.transpose(1, 0)
 
-    return concept_map
+
+    return concept_map, concept_importance
+
+
+def plot_concept_importance(concept_importance):
+    df = pd.DataFrame(concept_importance, index=["beak@joint", "beak@handle", "beak@ring", "beak@global", "joint@handle", "joint@ring", "joint@global", "handle@ring", "handle@global", "ring@global"],
+                      columns=pd.Index(["Straight hemostatic forceps", "Tissue forceps", "Suture scissors", "Sponge clamp", "Tissue scissors"], name='concept'))
+    df.plot(kind='bar', ylabel='Importance', xlabel='Concept relation', rot=0, figsize=(13, 6)).legend(loc=(1.01, 0.7))
+
+
 
 def plot_confusion_matrix(image, cm, labels_name, title):
     """
@@ -47,14 +73,14 @@ def plot_confusion_matrix(image, cm, labels_name, title):
     # cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]    # 归一化
     fig, ax = plt.subplots(5, 6)
     ax = ax.flatten()
-    image = image.view(5, 20, 3, 84, 84)
+    # image = image.view(5, 20, 3, 84, 84)
+    image = image.view(5, 21, 3, 84, 84)
     # plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
     # plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
     # plt.title(title)  # 图像标题
     j = 0
     for i in range(30):
         # fig.add_subplot(5, 5, i+1)
-
         if i % 6 == 0:
             image_1 = image[j, 1, :, :, :]
             if i == 0:
@@ -142,12 +168,20 @@ def plot_confusion_matrix(image, cm, labels_name, title):
 
 
 def data2heatmap(image, attn_map):
-    concept_map = concept_concentrate(attn_map).numpy()
+    concept_map, concept_importance = concept_concentrate(attn_map)
+    concept_map = concept_map.numpy()
+    concept_importance = concept_importance.numpy()
     labels_name = ["a", "b", "c", "d", "e"]
-    plot_confusion_matrix(image, concept_map, labels_name, "HAR Confusion Matrix")
     uuid_str = uuid.uuid4().hex
-    img_path = 'D:\Projects\comet_concept\output\img_%s.jpg' % uuid_str
+    plot_confusion_matrix(image, concept_map, labels_name, "HAR Confusion Matrix")
+    img_path = 'D:\Projects\comet_concept\output_4\%s_img.jpg' % uuid_str
     plt.savefig(img_path, dpi=1000)
+    plt.close()
+    plot_concept_importance(concept_importance)
+    plt.savefig('D:\Projects\comet_concept\output_4\%s_concept_importance.jpg' % uuid_str, dpi=100, bbox_inches='tight')
+
+
+
     # plt.show()
 
 
