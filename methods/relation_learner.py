@@ -11,10 +11,7 @@
 """
 import torch
 import torch.nn as nn
-from methods.data2heatmap import data2heatmap
-# from visualizer import get_local
-import seaborn as sns
-from matplotlib import pyplot as plt
+
 
 
 class WindowAttention(nn.Module):
