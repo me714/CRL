@@ -1,10 +1,8 @@
-## Concept Learners for Few-Shot Learning
-Kaidi Cao*, Maria Brbić*, Jure Leskovec
+## Fine-grained classification of surgical instruments combined with concept relation learning
 
-[Project website](http://snap.stanford.edu/comet)
 _________________
 
-This repo contains the reference source code in PyTorch of the COMET algorithm. COMET is a meta-learning method that learns generalizable representations along human-understandable concept dimensions. For more details please check our paper [Concept Learners for Few-Shot Learning](https://arxiv.org/pdf/2007.07375.pdf) (ICLR '21).
+This repo contains the reference source code in PyTorch of the CRL(concept relation learning) algorithm.
 
 <p align="center">
 <img src="https://github.com/snap-stanford/comet/blob/master/img/COMET_model.png" width="1100" align="center">
