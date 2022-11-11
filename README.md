@@ -5,7 +5,8 @@ _________________
 This repo contains the reference source code in PyTorch of the CRL(concept relation learning) algorithm.
 
 <p align="center">
-<img src="https://github.com/snap-stanford/comet/blob/master/img/COMET_model.png" width="1100" align="center">
+<img src="https://github.com/me714/CRL/blob/depth/image/figure2.jpg" width="1100" align="center">
+<img src="https://github.com/me714/CRL/blob/depth/image/figure3.jpg" width="1100" align="center">
 </p>
 
 ### Dependencies
