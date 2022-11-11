@@ -271,14 +271,14 @@ class ConvNet(nn.Module):
         return out
 
 
-class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in only first two layers, else no pooling
-    def __init__(self, depth, flatten = True):
-        super(ConvNetNopool,self).__init__()
+class ConvNetCoR(nn.Module): #Relation net use a 4 layer conv with pooling in only first two layers, else no pooling
+    def __init__(self, depth, concept_num, flatten = True):
+        super(ConvNetCoR, self).__init__()
         self.conv = nn.Conv2d(85, 85, kernel_size=1, bias=True)
         trunk = []
         for i in range(depth):
-            indim = 3 if i == 0 else 24
-            outdim = 24
+            indim = 3 if i == 0 else concept_num
+            outdim = concept_num
             B = ConvBlock(indim, outdim, pool = ( i in [0,1] ), padding = 0 if i in[0,1] else 1  ) #only first two layer has pooling and no padding
             trunk.append(B)
 
@@ -286,11 +286,11 @@ class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in
             lastpool = nn.AdaptiveAvgPool2d((1, 1))
             trunk.append(lastpool)
             trunk.append(Flatten())
-            self.final_feat_dim = 24
+            self.final_feat_dim = concept_num
         else:
             lastpool = nn.AdaptiveAvgPool2d((7, 7))
             trunk.append(lastpool)
-            self.final_feat_dim = [24, 7, 7]
+            self.final_feat_dim = [concept_num, 7, 7]
 
         self.trunk = nn.Sequential(*trunk)
 
@@ -300,6 +300,31 @@ class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in
 
         return out
 
+class ConvNetNopool(nn.Module): #Relation net use a 4 layer conv with pooling in only first two layers, else no pooling
+    def __init__(self, depth, flatten = True):
+        super(ConvNetNopool,self).__init__()
+        trunk = []
+        for i in range(depth):
+            indim = 3 if i == 0 else 64
+            outdim = 64
+            B = ConvBlock(indim, outdim, pool = ( i in [0,1] ), padding = 0 if i in[0,1] else 1  ) #only first two layer has pooling and no padding
+            trunk.append(B)
+
+        if flatten:
+            lastpool = nn.AdaptiveAvgPool2d((1,1))
+            trunk.append(lastpool)
+            trunk.append(Flatten())
+            self.final_feat_dim = 64
+        else:
+            lastpool = nn.AdaptiveAvgPool2d((7,7))
+            trunk.append(lastpool)
+            self.final_feat_dim = [ 64, 7, 7]
+
+        self.trunk = nn.Sequential(*trunk)
+
+    def forward(self,x):
+        out = self.trunk(x)
+        return out
 
 class ConvNetS(nn.Module): #For omniglot, only 1 input channel, output dim is 64
     def __init__(self, depth, flatten = True):
@@ -404,6 +429,9 @@ def Conv4NP(flatten = False):
 
 def Conv6NP(flatten = False):
     return ConvNetNopool(6, flatten=False)
+
+def Conv6COR(flatten = False):
+    return ConvNetCoR(6,15, flatten=False)
 
 def Conv4S():
     return ConvNetS(4)

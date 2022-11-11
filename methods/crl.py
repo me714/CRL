@@ -9,7 +9,7 @@ from methods.meta_template import MetaTemplate
 from methods.relation_learner import WindowAttention
 from methods.focal_loss import FocalLossV1
 from methods.resNet import CNN, BasicBlock
-from backbone import Conv5
+from backbone import Conv6COR
 from torchvision import models
 
 
@@ -21,12 +21,11 @@ class CRL(MetaTemplate):
         self.Linear2 = nn.Linear(49, 2)
         self.smoth = nn.SmoothL1Loss()
         self.globalpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.featurep = Conv5()
+        self.concept_c = Conv6COR()
 
         self.wt = nn.Parameter(data=torch.ones(16), requires_grad=True).cuda()
         self.att = WindowAttention(64, 4)
         self.focal_loss = FocalLossV1()
-        # self.cnn = load_pretrain()
 
 
     def set_forward(self, x, joints=None, is_feature=False):
@@ -35,7 +34,6 @@ class CRL(MetaTemplate):
         z_support = z_support.contiguous()
         z_proto = z_support.view(self.n_way, self.n_support, -1).mean(1)  # the shape of z is [n_data, n_dim]
         z_query = z_query.contiguous().view(self.n_way * self.n_query, -1)
-        # focal_loss = FocalLossV1
         z_pos = z_pos.float()
         joints_label = joints_label.float()
         loss = self.smoth(z_pos, joints_label)
@@ -60,9 +58,9 @@ class CRL(MetaTemplate):
             z_all = x
         else:
             x = x.contiguous().view(self.n_way * (self.n_support + self.n_query), *x.size()[2:])
-            image =x
-            z_all = self.feature.forward(x)
-            z_feature = self.featurep(x)
+            image = x
+            z_feature = self.feature.forward(x)
+            z_all = self.concept_c(x)
             z_one = z_feature.view(self.n_way, self.n_support + self.n_query, -1)
             z_pos = z_all.view(z_all.size()[0], z_all.size()[1], -1)
             z_pos = self.Linear2(z_pos)
@@ -72,11 +70,8 @@ class CRL(MetaTemplate):
             joints[:, :, :2] = joints[:, :, :2] / img_len * feat_len
             joints = joints.round().int()
             joints_label = Variable(joints[:, :, 0:2].contiguous().cuda())
-            joints_label = joints_label.repeat(1, 6, 1)
-            joints = np.repeat(joints, 6, axis=1)
             batch_num = joints.size(0)
             joints_num = joints.size(1)
-            # joints_num = 3
             z_pos = abs(z_pos).round().int()
             z_avg = self.globalpool(z_feature).view(z_feature.size(0), z_feature.size(1))
             feat_list = []

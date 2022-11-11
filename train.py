@@ -162,7 +162,7 @@ if __name__=='__main__':
                 model.train_lr = 0.1
     else:
        raise ValueError('Unknown method')
-    torch.cuda.set_device(4)
+    torch.cuda.set_device(0)
     model = model.cuda()
 
 
