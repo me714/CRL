@@ -17,7 +17,7 @@ from data.datamgr import SetDataManager
 from methods.baselinetrain import BaselineTrain
 from methods.baselinefinetune import BaselineFinetune
 from methods.protonet import ProtoNet
-from methods.crl import COMET
+from methods.crl import CRL
 from methods.matchingnet import MatchingNet
 from methods.relationnet import RelationNet
 from methods.maml import MAML
@@ -65,8 +65,8 @@ if __name__ == '__main__':
         model           = BaselineFinetune( model_dict[params.model], loss_type = 'dist', **few_shot_params )
     elif params.method == 'protonet':
         model           = ProtoNet( model_dict[params.model], **few_shot_params )
-    elif params.method == 'comet':
-        model           = COMET( model_dict[params.model], **few_shot_params )
+    elif params.method == 'crl':
+        model           = CRL( model_dict[params.model], **few_shot_params )
     elif params.method == 'matchingnet':
         model           = MatchingNet( model_dict[params.model], **few_shot_params )
     elif params.method in ['relationnet', 'relationnet_softmax']:
@@ -146,7 +146,7 @@ if __name__ == '__main__':
             model.task_update_num = 100 #We perform adaptation on MAML simply by updating more times.
         model.eval()
         acc_mean, acc_std = model.test_loop( novel_loader, return_std = True)
-    elif params.method == 'comet':
+    elif params.method == 'crl':
         if 'Conv' in params.model:
             if params.dataset in ['omniglot', 'cross_char']:
                 image_size = 28
