@@ -78,9 +78,9 @@ class WindowAttention(nn.Module):
             attn = (q @ k.transpose(-2, -1))
             attn = self.softmax(attn)
 
-            heatmap = attn.detach().cpu()
+            # heatmap = attn.detach().cpu()
             mask = mask.detach().cpu()
-            data2heatmap(image=mask, attn_map=heatmap)
+            # data2heatmap(image=mask, attn_map=heatmap)
             attn = self.attn_drop(attn)
             x = (attn @ v).transpose(1, 2).reshape(B_, N, C)
             x = x.view(5 * self.query_num, self.c_num * self.c_num * self.dim)

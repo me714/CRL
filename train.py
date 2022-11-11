@@ -162,8 +162,9 @@ if __name__=='__main__':
                 model.train_lr = 0.1
     else:
        raise ValueError('Unknown method')
-
+    torch.cuda.set_device(4)
     model = model.cuda()
+
 
     params.checkpoint_dir = '%s/checkpoints/%s/%s_%s_%s' %(configs.save_dir, params.dataset, params.model, params.method, params.exp_str)
     if params.train_aug:

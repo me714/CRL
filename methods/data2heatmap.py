@@ -62,6 +62,7 @@ def plot_concept_importance(concept_importance):
     df = pd.DataFrame(concept_importance, index=["beak@joint", "beak@handle", "beak@ring", "beak@global", "joint@handle", "joint@ring", "joint@global", "handle@ring", "handle@global", "ring@global"],
                       columns=pd.Index(["Straight hemostatic forceps", "Tissue forceps", "Suture scissors", "Sponge clamp", "Tissue scissors"], name='concept'))
     df.plot(kind='bar', ylabel='Importance', xlabel='Concept relation', rot=0, figsize=(13, 6)).legend(loc=(1.01, 0.7))
+    return df
 
 
 
@@ -169,16 +170,21 @@ def plot_confusion_matrix(image, cm, labels_name, title):
 
 def data2heatmap(image, attn_map):
     concept_map, concept_importance = concept_concentrate(attn_map)
+    concept_map = pd.DataFrame(concept_map)
+    concept_importance = pd.DataFrame(concept_importance)
     concept_map = concept_map.numpy()
     concept_importance = concept_importance.numpy()
     labels_name = ["a", "b", "c", "d", "e"]
     uuid_str = uuid.uuid4().hex
     plot_confusion_matrix(image, concept_map, labels_name, "HAR Confusion Matrix")
-    img_path = 'D:\Projects\comet_concept\output_4\%s_img.jpg' % uuid_str
+    img_path = '/home/cv_user1/Desktop/comet_concept/output/%s_img.jpg' % uuid_str
     plt.savefig(img_path, dpi=1000)
     plt.close()
-    plot_concept_importance(concept_importance)
-    plt.savefig('D:\Projects\comet_concept\output_4\%s_concept_importance.jpg' % uuid_str, dpi=100, bbox_inches='tight')
+    df = plot_concept_importance(concept_importance)
+    concept_map.to_csv('/home/cv_user1/Desktop/comet_concept/output/%s_concept_map.csv' % uuid_str)
+    concept_importance.to_csv('/home/cv_user1/Desktop/comet_concept/output/%s_concept_importance_map.csv' % uuid_str)
+    df.to_csv('/home/cv_user1/Desktop/comet_concept/output/%s_concept_importance.csv' % uuid_str)
+    plt.savefig('/home/cv_user1/Desktop/comet_concept/output/%s_concept_importance.jpg' % uuid_str, dpi=100, bbox_inches='tight')
 
 
 
