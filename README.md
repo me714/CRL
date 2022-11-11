@@ -42,4 +42,4 @@ Run
 ```python ./test.py --dataset CUB --model Conv6NP --method comet --train_aug```
 
 
-Our codebase is developed based on the [benchmark implementation](https://github.com/wyharveychen/CloserLookFewShot) from paper [A Closer Look at Few-shot Classification](https://openreview.net/pdf?id=HkxLXnAcFQ).
+Our codebase is developed based on the [benchmark implementation](https://github.com/wyharveychen/CloserLookFewShot) from paper [A Closer Look at Few-shot Classification](https://openreview.net/pdf?id=HkxLXnAcFQ) and [COMET](https://github.com/snap-stanford/comet).
