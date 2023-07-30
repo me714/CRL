@@ -89,7 +89,11 @@ if __name__=='__main__':
 
     # set optimizer
     optimization = 'Adam'
+# The code is a block of Python code that sets the value of params.stop_epoch based on the values of several input parameters. The stop_epoch parameter is used to specify the number of training epochs after which the training process should stop. The block first checks if params.stop_epoch has already been set to a value of -1. If it has, the block sets the value of params.stop_epoch based on the values of params.method, params.dataset, and params.n_shot.
 
+If params.method is either "baseline" or "baseline++", the block sets the value of params.stop_epoch based on the value of params.dataset. If params.dataset is "omniglot" or "cross_char", params.stop_epoch is set to 5. If params.dataset is "CUB", params.stop_epoch is set to 200. If params.dataset is "miniImagenet" or "cross", params.stop_epoch is set to 400. If params.dataset is none of the above, params.stop_epoch is set to 400 by default.
+
+If params.method is not "baseline" or "baseline++", the block sets the value of params.stop_epoch based on the value of params.n_shot. If params.n_shot is 1, params.stop_epoch is set to 200. If params.n_shot is 5, params.stop_epoch is set to 100. If params.n_shot is none of the above, params.stop_epoch is set to 600 by default.
     if params.stop_epoch == -1: 
         if params.method in ['baseline', 'baseline++'] :
             if params.dataset in ['omniglot', 'cross_char']:

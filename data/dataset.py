@@ -12,7 +12,10 @@ import copy
 import cv2
 from .transforms import *
 
+# this is a helper function to convert PIL image to byte tensor
 identity = lambda x:x
+
+# The code is a Python class called SimpleDataset that represents a dataset of images. The class takes as input a data file, image size, transform, target transform, and a boolean flag indicating whether the dataset is for training or not. The class reads the data file, which is expected to be in JSON format, and loads the image names and labels into memory. The __getitem__ method is used to retrieve an image and its corresponding label at a given index. The method reads the image from disk, applies some random transformations to it if the dataset is for training, and returns the transformed image and its label. The __len__ method returns the number of images in the dataset.
 class SimpleDataset:
     def __init__(self, data_file, image_size, transform, target_transform=identity, is_train=True):
         with open(data_file, 'r') as f:
