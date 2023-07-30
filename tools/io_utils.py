@@ -17,6 +17,10 @@ model_dict = dict(
             ResNet50 = backbone.ResNet50,
             ResNet101 = backbone.ResNet101) 
 
+
+# This function is used to parse the arguments for the train.py and test.py scripts.
+# The arguments are parsed using the argparse library.
+# The arguments are then returned as a dictionary.
 def parse_args(script):
     parser = argparse.ArgumentParser(description= 'few-shot script %s' %(script))
     parser.add_argument('--dataset'     , default='CUB',        help='CUB/miniImagenet/cross/omniglot/cross_char')

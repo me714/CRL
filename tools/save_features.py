@@ -14,7 +14,7 @@ from methods.protonet import ProtoNet
 from methods.matchingnet import MatchingNet
 from methods.relationnet import RelationNet
 from methods.maml import MAML
-from io_utils import model_dict, parse_args, get_resume_file, get_best_file, get_assigned_file 
+from tools.io_utils import model_dict, parse_args, get_resume_file, get_best_file, get_assigned_file 
 
 
 def save_features(model, data_loader, outfile ):

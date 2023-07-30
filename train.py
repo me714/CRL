@@ -8,8 +8,8 @@ import time
 import os
 import glob
 
-import configs
-import backbone
+import tools.configs
+import tools.backbone
 from data.datamgr import SimpleDataManager, SetDataManager
 from methods.baselinetrain import BaselineTrain
 from methods.baselinefinetune import BaselineFinetune
@@ -18,12 +18,13 @@ from methods.crl import CRL
 from methods.matchingnet import MatchingNet
 from methods.relationnet import RelationNet
 from methods.maml import MAML
-from io_utils import model_dict, parse_args, get_resume_file
+from tools.io_utils import model_dict, parse_args, get_resume_file
 from torch.utils.tensorboard import SummaryWriter
 # import wandb
 
 # wandb.login(key='6c2154c99d763aff2bfa8017ac22e76cd13e213b')
 
+# train with feature extractor
 def train(base_loader, val_loader, model, optimization, start_epoch, stop_epoch, params, tf_writer):    
     if optimization == 'Adam':
         optimizer = torch.optim.Adam(model.parameters())
@@ -57,10 +58,12 @@ def train(base_loader, val_loader, model, optimization, start_epoch, stop_epoch,
     # return model
 
 if __name__=='__main__':
+    # random seed
     np.random.seed(10)
+    # train parameter
     params = parse_args('train')
 
-
+    # select dataset
     if params.dataset == 'cross':
         base_file = configs.data_dir['miniImagenet'] + 'all.json' 
         val_file   = configs.data_dir['CUB'] + 'novel.json'
@@ -70,7 +73,8 @@ if __name__=='__main__':
     else:
         base_file = configs.data_dir[params.dataset] + 'base.json' 
         val_file   = configs.data_dir[params.dataset] + 'novel.json'
-         
+
+    # select model   
     if 'Conv' in params.model:
         if params.dataset in ['omniglot', 'cross_char']:
             image_size = 28
@@ -83,6 +87,7 @@ if __name__=='__main__':
         assert params.model == 'Conv4' and not params.train_aug ,'omniglot only support Conv4 without augmentation'
         params.model = 'Conv4S'
 
+    # set optimizer
     optimization = 'Adam'
 
     if params.stop_epoch == -1: 
@@ -166,6 +171,7 @@ if __name__=='__main__':
     model = model.cuda()
 
 
+    # save model init state
     params.checkpoint_dir = '%s/checkpoints/%s/%s_%s_%s' %(configs.save_dir, params.dataset, params.model, params.method, params.exp_str)
     if params.train_aug:
         params.checkpoint_dir += '_aug'
@@ -182,13 +188,14 @@ if __name__=='__main__':
     stop_epoch = params.stop_epoch
     if params.method == 'maml' or params.method == 'maml_approx' :
         stop_epoch = params.stop_epoch * model.n_task #maml use multiple tasks in one update 
-
+# resume training
     if params.resume:
         resume_file = get_resume_file(params.checkpoint_dir)
         if resume_file is not None:
             tmp = torch.load(resume_file)
             start_epoch = tmp['epoch']+1
             model.load_state_dict(tmp['state'])
+# selcet the best model
     elif params.warmup: #We also support warmup from pretrained baseline feature, but we never used in our paper
         baseline_checkpoint_dir = '%s/checkpoints/%s/%s_%s' %(configs.save_dir, params.dataset, params.model, 'baseline')
         if params.train_aug:
@@ -207,7 +214,8 @@ if __name__=='__main__':
             model.feature.load_state_dict(state)
         else:
             raise ValueError('No warm_up file')
-
+# set tf writer
     tf_writer = SummaryWriter(log_dir=params.checkpoint_dir)
 
+# start training
     train(base_loader, val_loader,  model, optimization, start_epoch, stop_epoch, params, tf_writer)
